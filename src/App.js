@@ -2,16 +2,14 @@ import { useState } from "react";
 import SearchBar from "./searchBar";
 import ApiPpo from "./apiPpo";
 import Table from "./table";
-import Button from "./button";
 import "./App.css";
 
 function App() {
   const [people, setPeople] = useState([]);
   const [page, setPage] = useState(1);
   let [name, setName] = useState("");
-  let [hidden, setHidden] = useState(true);
+  let [hidden, setHidden] = useState(true);   //faccio schifo
   let [hasNext, setHasNext] = useState(true);
-  let [hasPrevious, setHasPrevious] = useState(false);
 
   async function richiesta(inputText, p) {
     try {
@@ -36,17 +34,14 @@ function App() {
   };
 
   const nextPage = async () => {
-    setHasPrevious(true);
     await richiesta(name, page + 1);
     setPage(page + 1); //aggiorno la page
   };
   const previousPage = async () => {
-    console.log(page);
-    if (page == 2) {
-      setHasPrevious(false);
+    if (page > 1) {
+      await richiesta(name, page - 1);
+      setPage(page - 1); //aggiorno la page
     }
-    await richiesta(name, page - 1);
-    setPage(page - 1); //aggiorno la page
   };
 
   return (
@@ -55,7 +50,7 @@ function App() {
       {!hidden && (
         <>
           <Table people={people} />
-          {hasPrevious && (
+          {page > 1 && (
             <>
               <button className="button" onClick={previousPage}>
                 Pagina precedente
