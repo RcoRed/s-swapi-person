@@ -11,30 +11,42 @@ function App() {
   let [name, setName] = useState("");
   let [hidden, setHidden] = useState(true);
   let [hasNext, setHasNext] = useState(true);
+  let [hasPrevious, setHasPrevious] = useState(false);
+
+  async function richiesta(inputText, p) {
+    try {
+      const { data } = await ApiPpo(inputText, p);
+      await setPeople(data.results);
+      setHasNext(true); //reset
+      //controllo se c'è il next
+      if (!data.next) {
+        setHasNext(false); //se no c'è blocco il pulsante
+      }
+    } catch (err) {
+      console.log(err);
+      return <p className="errore">Ops, qualcosa è andato storto! Riprova!</p>;
+    }
+  }
 
   const handleSubmit = async (inputText) => {
-    let p = 1; //se non lo faccio con questo metedo non funziona
-    const { data } = await ApiPpo(inputText, p);
-    setPage(p); //reset
+    await richiesta(inputText, 1);
+    setPage(1); //reset
     setName(inputText); //salvo il name da cercare per next
     setHidden(false); //sblocco next e tabella
-    setHasNext(true); //reset
-    if (!data.next) {
-      //controllo se c'è il next
-      setHasNext(false); //se no c'è blocco il pulsante
-    }
-    setPeople(data.results);
   };
-  const handleNextPage = async (inputText) => {
-    let p = page; //se non lo faccio con questo metodo non funziona...
-    p++;
-    const { data } = await ApiPpo(inputText, p);
-    setPage(p); //aggiorno la page
-    if (!data.next) {
-      //controllo del next
-      setHasNext(false);
+
+  const nextPage = async () => {
+    setHasPrevious(true);
+    await richiesta(name, page + 1);
+    setPage(page + 1); //aggiorno la page
+  };
+  const previousPage = async () => {
+    console.log(page);
+    if (page == 2) {
+      setHasPrevious(false);
     }
-    setPeople(data.results);
+    await richiesta(name, page - 1);
+    setPage(page - 1); //aggiorno la page
   };
 
   return (
@@ -43,9 +55,18 @@ function App() {
       {!hidden && (
         <>
           <Table people={people} />
+          {hasPrevious && (
+            <>
+              <button className="button" onClick={previousPage}>
+                Pagina precedente
+              </button>
+            </>
+          )}
           {hasNext && (
             <>
-              <Button onClick={handleNextPage} name={name} />
+              <button className="button" onClick={nextPage}>
+                Prossima paina
+              </button>
             </>
           )}
         </>
